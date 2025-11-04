@@ -55,6 +55,7 @@ class BookingController extends ResourceController
             'contact'     => $request->getPost('contact'),
             'email'       => $request->getPost('email'),
             'subcategory' => $request->getPost('subcategory'),
+            'category'    => $request->getPost('category'),
             'gstin'       => $request->getPost('gstin'),
             'description' => $request->getPost('description'),
             'location'    => $request->getPost('location'),
@@ -95,15 +96,28 @@ class BookingController extends ResourceController
     public function show($id = null)
     {
         $bookingModel = new Booking();
+
+        // ✅ Validate input
+        if ($id === null) {
+            return $this->failValidationError('Booking ID is required');
+        }
+
+        // ✅ Get the booking by ID
         $booking = $bookingModel->find($id);
 
         if (!$booking) {
             return $this->failNotFound('Booking not found');
         }
 
+        // ✅ Get all bookings by the same customer
+        $customerBookings = $bookingModel
+            ->where('customer_id', $booking['customer_id'])
+            ->findAll();
+
+        // ✅ Respond with the list
         return $this->respond([
             'response' => true,
-            'data'     => $booking,
+            'data'     => $customerBookings,
         ]);
     }
 
@@ -127,23 +141,107 @@ class BookingController extends ResourceController
     public function getActiveBookings()
     {
         $model = new Booking();
-        $bookings = $model->where('active', 1)->where('deleted', 0)->findAll();
+
+        $allowedCategories = ['Equipment', 'Experts', 'Mobility'];
+        $category = $this->request->getGet('category');
+
+        if ($category) {
+            $categories = explode(',', $category);
+            // Filter only categories that are allowed
+            $filteredCategories = array_intersect(
+                array_map('ucfirst', array_map('strtolower', $categories)), // normalize
+                $allowedCategories
+            );
+
+            if (!empty($filteredCategories)) {
+                $model->whereIn('category', $filteredCategories);
+            } else {
+                // If none of the requested categories are allowed, return empty
+                $vendors = $model
+                    ->where('active', 1)
+                    ->where('deleted', 0)
+                    ->findAll();
+
+                return $this->respond([
+                    'response' => true,
+                    'data'     => $vendors
+                ], 200);
+            }
+        } else {
+            // No category param — only return allowed ones
+            $model->whereIn('category', $allowedCategories);
+        }
+
+        $vendors = $model
+            ->where('active', 1)
+            ->where('deleted', 0)
+            ->findAll();
 
         return $this->respond([
             'response' => true,
-            'data'     => $bookings
+            'data'     => $vendors
         ], 200);
+
+        // if ($category) {
+        //     $categories = explode(',', $category);
+        //     $model->whereIn('category', $categories);
+        // }
+        // $bookings = $model->where('active', 1)->where('deleted', 0)->findAll();
+
+        // return $this->respond([
+        //     'response' => true,
+        //     'data'     => $bookings
+        // ], 200);
     }
 
     public function getInactiveVendors()
     {
         $model = new Booking();
-        $bookings = $model->where('active', 0)->where('deleted', 0)->findAll();
+        $allowedCategories = ['Equipment', 'Experts', 'Mobility'];
+        $category = $this->request->getGet('category');
+
+        if ($category) {
+            $categories = explode(',', $category);
+            // Filter only categories that are allowed
+            $filteredCategories = array_intersect(
+                array_map('ucfirst', array_map('strtolower', $categories)), // normalize
+                $allowedCategories
+            );
+
+            if (!empty($filteredCategories)) {
+                $model->whereIn('category', $filteredCategories);
+            } else {
+                // If none of the requested categories are allowed, return empty
+                $vendors = $model
+                    ->where('active', 0)
+                    ->where('deleted', 0)
+                    ->findAll();
+
+                return $this->respond([
+                    'response' => true,
+                    'data'     => $vendors
+                ], 200);
+            }
+        } else {
+            // No category param — only return allowed ones
+            $model->whereIn('category', $allowedCategories);
+        }
+
+        $vendors = $model
+            ->where('active', 0)
+            ->where('deleted', 0)
+            ->findAll();
 
         return $this->respond([
             'response' => true,
-            'data'     => $bookings
+            'data'     => $vendors
         ], 200);
+        // $bookings = $model->where('active', 0)->where('deleted', 0)->findAll();
+
+        // return $this->respond([
+        //     'response' => true,
+        //     'data'     => $bookings
+        // ], 200);
     }
 
     // DELETE 

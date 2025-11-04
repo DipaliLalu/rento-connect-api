@@ -80,6 +80,12 @@ $routes->group('', ['filter' => ['apikey', 'cors']], function ($routes) {
     $routes->post('vendor/login', 'VendorController::login');
     $routes->post('customer/register', 'CustomerRegisterController::register');
     $routes->get('customer/list/(:num)', 'CustomerRegisterController::show/$1');
+    $routes->options('vendor', static function () {
+        $response = response();
+        $response->setStatusCode(204);
+        $response->setHeader('Allow', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
+        return $response;
+    });
 
     //bookings
     $routes->post('booking', 'BookingController::register');
@@ -88,6 +94,7 @@ $routes->group('', ['filter' => ['apikey', 'cors']], function ($routes) {
     $routes->get('booking/activelist', 'BookingController::getActiveBookings');
     $routes->get('booking/list', 'BookingController::getInactiveVendors');
     $routes->delete('booking/(:num)', 'BookingController::delete/$1');
+    $routes->get('bookinglist/(:num)', 'BookingController::show/$1');
 
     //product 
     $routes->group('products', function ($routes) {
@@ -96,5 +103,14 @@ $routes->group('', ['filter' => ['apikey', 'cors']], function ($routes) {
         $routes->get('(:num)', 'ProductController::show/$1');
         $routes->post('(:num)', 'ProductController::update/$1');
         $routes->delete('(:num)', 'ProductController::delete/$1');
+    });
+
+    $routes->post('contact/send', 'ContactController::send_mail');
+
+    $routes->group('blog', function ($routes) {
+        $routes->post('add', 'BlogController::addBlog');
+        $routes->post('edit/(:num)', 'BlogController::editBlog/$1');
+        $routes->get('list', 'BlogController::listBlogs');
+        $routes->delete('delete/(:num)', 'BlogController::singleDeletedBlog/$1');
     });
 });
