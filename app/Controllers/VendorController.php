@@ -17,9 +17,9 @@ class VendorController extends ResourceController
         $validation = service('validation');
         $validation->setRules([
             'name'                => 'required|string',
-            'contact'             => 'required|min_length[10]',
+            'contact'             => 'required|min_length[10]|is_unique[vendors.contact]',
             'alternativecontact'  => 'permit_empty|min_length[10]',
-            'email'               => 'required|valid_email',
+            'email'               => 'required|valid_email|is_unique[vendors.email]',
             'password'            => 'required|min_length[6]',
             'category'            => 'required|string',
             'address'             => 'required|string',
@@ -132,7 +132,44 @@ class VendorController extends ResourceController
     public function getActiveVendors()
     {
         $vendorModel = new VendorModel();
-        $vendors = $vendorModel->where('active', 1)->where('deleted', 0)->findAll();
+
+        // Allowed categories
+        $allowedCategories = ['Equipment', 'Experts', 'Mobility'];
+
+        // Get query param (?category=equipment,experts,...)
+        $category = $this->request->getGet('category');
+
+        if ($category) {
+            $categories = explode(',', $category);
+            // Filter only categories that are allowed
+            $filteredCategories = array_intersect(
+                array_map('ucfirst', array_map('strtolower', $categories)), // normalize
+                $allowedCategories
+            );
+
+            if (!empty($filteredCategories)) {
+                $vendorModel->whereIn('category', $filteredCategories);
+            } else {
+                // If none of the requested categories are allowed, return empty
+                $vendors = $vendorModel
+                    ->where('active', 1)
+                    ->where('deleted', 0)
+                    ->findAll();
+
+                return $this->respond([
+                    'response' => true,
+                    'data'     => $vendors
+                ], 200);
+            }
+        } else {
+            // No category param — only return allowed ones
+            $vendorModel->whereIn('category', $allowedCategories);
+        }
+
+        $vendors = $vendorModel
+            ->where('active', 1)
+            ->where('deleted', 0)
+            ->findAll();
 
         return $this->respond([
             'response' => true,
@@ -143,12 +180,56 @@ class VendorController extends ResourceController
     public function getInactiveVendors()
     {
         $vendorModel = new VendorModel();
-        $vendors = $vendorModel->where('active', 0)->where('deleted', 0)->findAll();
+        // Allowed categories
+        $allowedCategories = ['Equipment', 'Experts', 'Mobility'];
+        $category = $this->request->getGet('category');
+
+        if ($category) {
+            $categories = explode(',', $category);
+            // Filter only categories that are allowed
+            $filteredCategories = array_intersect(
+                array_map('ucfirst', array_map('strtolower', $categories)), // normalize
+                $allowedCategories
+            );
+
+            if (!empty($filteredCategories)) {
+                $vendorModel->whereIn('category', $filteredCategories);
+            } else {
+                // If none of the requested categories are allowed, return empty
+                $vendors = $vendorModel
+                    ->where('active', 0)
+                    ->where('deleted', 0)
+                    ->findAll();
+
+                return $this->respond([
+                    'response' => true,
+                    'data'     => $vendors
+                ], 200);
+            }
+        } else {
+            // No category param — only return allowed ones
+            $vendorModel->whereIn('category', $allowedCategories);
+        }
+
+        $vendors = $vendorModel
+            ->where('active', 0)
+            ->where('deleted', 0)
+            ->findAll();
 
         return $this->respond([
             'response' => true,
             'data'     => $vendors
         ], 200);
+        // if ($category) {
+        //     $categories = explode(',', $category);
+        //     $vendorModel->whereIn('category', $categories);
+        // }
+        // $vendors = $vendorModel->where('active', 0)->where('deleted', 0)->findAll();
+
+        // return $this->respond([
+        //     'response' => true,
+        //     'data'     => $vendors
+        // ], 200);
     }
 
     public function login()
@@ -179,7 +260,11 @@ class VendorController extends ResourceController
         $role = null;
 
         // ✅ First check Vendor table
-        $vendor = $vendorModel->where('email', $email)
+        $vendor = $vendorModel
+            ->groupStart()
+            ->where('email', $email)
+            ->orWhere('contact', $email)
+            ->groupEnd()
             ->where('deleted', 0)
             ->first();
 
@@ -226,8 +311,9 @@ class VendorController extends ResourceController
         $token = generateJWT([
             'id' => $user['id'],
             'email' => $user['email'],
-            'name'  =>$user['name'],
-            'role' => $role
+            'name'  => $user['name'],
+            'role' => $role,
+            'data' => $user
         ]);
 
         // ✅ Success response
