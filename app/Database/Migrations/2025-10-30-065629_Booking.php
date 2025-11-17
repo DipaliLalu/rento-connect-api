@@ -31,7 +31,6 @@ class Booking extends Migration
                 'type' => 'VARCHAR',
                 'constraint' => 200,
                 'null' => false,
-                'unique' => true,
             ],
             'subcategory' => [
                 'type' => 'VARCHAR',

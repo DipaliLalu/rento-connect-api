@@ -15,6 +15,9 @@ class VendorModel extends Model
     protected $allowedFields    = [
         'name',
         'contact',
+        'state',
+        'city',
+        'pincode',
         'alternativecontact',
         'email',
         'password',
