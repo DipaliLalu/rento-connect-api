@@ -99,6 +99,11 @@ class SubCategoryController extends ResourceController
             $imagePath = 'uploads/subcategory/' . $newName;
         }
 
+        $type = null;
+        if (isset($data['category_slug']) && $data['category_slug'] === 'mobility') {
+            $type = $data['type'] ?? null;
+        }
+
         $insertData = [
             'category_slug'  => $data['category_slug'],
             'subcategory_name'  => $data['subcategory_name'],
@@ -109,6 +114,7 @@ class SubCategoryController extends ResourceController
             'metadata'       => $data['metadata'],
             'metatag'        => $data['metatag'],
             'active'         => $data['active'] ?? 1,
+            'type'           => $type,
             'created_by'     => $data['created_by'],
         ];
 
@@ -158,6 +164,12 @@ class SubCategoryController extends ResourceController
             $imagePath = 'uploads/subcategory/' . $newName;
         }
 
+        // ✅ Conditional type
+        $type = null;
+        if (($data['category_slug'] ?? $subcategory['category_slug']) === 'mobility') {
+            $type = $data['type'] ?? $subcategory['type'];
+        }
+
         $updateData = [
             'category_slug'  => $data['category_slug'] ?? $subcategory['category_slug'],
             'subcategory_name'  => $data['subcategory_name'] ?? $subcategory['subcategory_name'],
@@ -168,6 +180,7 @@ class SubCategoryController extends ResourceController
             'metatag'        => $data['metatag'] ?? $subcategory['metatag'],
             'active'         => $data['active'] ?? $subcategory['active'],
             'subcategory_image' => $imagePath,
+            'type'           => $type,
         ];
 
         $this->model->update($id, $updateData);

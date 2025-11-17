@@ -61,14 +61,18 @@ class ProductController extends ResourceController
 
         $insertData = [
             'product_name'  => $data['product_name'],
+            'vendor_id'     => $data['vendor_id'],
+            'category'      => $data['category'],
+            'sub_category'  => $data['sub_category'],
             'slug'          => $slug,
             'price_hour'    => $data['price_hour'],
             'price_day'     => $data['price_day'],
             'description'   => $data['description'],
             'product_image' => $imagePath,
-            'metadata'       => $data['metadata'],
-            'metatag'        => $data['metatag'],
-            'active'         => $data['active'],
+            'metadata'      => $data['metadata'],
+            'metatag'       => $data['metatag'],
+            'active'        => $data['active'],
+            'location'      => $data['location'],
         ];
 
         $this->model->insert($insertData);
@@ -152,6 +156,10 @@ class ProductController extends ResourceController
             'metadata'      => $data['metadata'] ?? $product['metadata'],
             'metatag'       => $data['metatag'] ?? $product['metatag'],
             'active'        => $data['active'] ?? $product['active'],
+            'vendor_id'     => $data['vendor_id'] ?? $product['vendor_id'],
+            'category'      => $data['category'] ?? $product['category'],
+            'sub_category'  => $data['sub_category'] ?? $product['sub_category'],
+            'location'      => $data['location'] ?? $product['location'],
         ], fn($v) => $v !== null);
 
         $this->model->update($id, $updateData);
@@ -195,5 +203,22 @@ class ProductController extends ResourceController
         $slug = strtolower(trim($string));
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
         return trim($slug, '-');
+    }
+
+    public function getBySlug($category)
+    {
+        $category = $this->model->where('category', $category)->findAll();
+
+        if (!$category) {
+            return $this->respond([
+                'status' => false,
+                'message' => 'Product not found'
+            ], 404);
+        }
+
+        return $this->respond([
+            'status' => true,
+            'data'   => $category
+        ], 200);
     }
 }

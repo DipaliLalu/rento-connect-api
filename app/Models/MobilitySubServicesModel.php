@@ -4,32 +4,15 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class ProductModel extends Model
+class MobilitySubServicesModel extends Model
 {
-    protected $table            = 'products';
-    protected $primaryKey       = 'product_id';
+    protected $table            = 'mobilitysubservices';
+    protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields = [
-        'product_id',
-        'vendor_id',
-        'category',
-        'sub_category',
-        'product_name',
-        'price_hour',
-        'price_day',
-        'slug',
-        'description',
-        'product_image',
-        'location',
-        'created_at',
-        'deleted',
-        'active',
-        'metadata',
-        'metatag'
-    ];
+    protected $allowedFields    = ['slug','id','display_name'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;

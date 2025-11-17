@@ -14,7 +14,7 @@ class Booking extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'customer_id',
-        'customer_id',
+        'category',
         'name',
         'contact',
         'email',

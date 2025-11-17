@@ -33,6 +33,7 @@ class BookingController extends ResourceController
             'contact'     => 'required|string|min_length[10]',
             'email'       => 'required|valid_email',
             'subcategory' => 'required|string',
+            'category'    => 'required|string',
             'gstin'       => 'permit_empty|string',
             'description' => 'required|string',
             'location'    => 'required|string',
@@ -102,16 +103,16 @@ class BookingController extends ResourceController
             return $this->failValidationError('Booking ID is required');
         }
 
-        // ✅ Get the booking by ID
-        $booking = $bookingModel->find($id);
+        // // ✅ Get the booking by ID
+        // $booking = $bookingModel->find($id);
 
-        if (!$booking) {
-            return $this->failNotFound('Booking not found');
-        }
+        // if (!$booking) {
+        //     return $this->failNotFound('Booking not found');
+        // }
 
         // ✅ Get all bookings by the same customer
         $customerBookings = $bookingModel
-            ->where('customer_id', $booking['customer_id'])
+            ->where('customer_id', $id)
             ->findAll();
 
         // ✅ Respond with the list
@@ -119,6 +120,34 @@ class BookingController extends ResourceController
             'response' => true,
             'data'     => $customerBookings,
         ]);
+    }
+    public function bookinghistory($id = null)
+    {
+        $bookingModel = new Booking();
+
+        if ($id === null) {
+            return $this->failValidationError('Booking ID is required');
+        }
+
+        $customerBookings = $bookingModel
+            ->where('customer_id', $id)
+            ->where('active', 1)
+            ->where('deleted', 0)
+            ->findAll();
+
+        if (empty($customerBookings)) {
+            return $this->respond([
+                'response' => true,
+                'message'  => 'No active bookings found for this customer',
+                'data'     => [],
+            ], 200);
+        }
+
+        return $this->respond([
+            'response' => true,
+            'message'  => 'Customer booking history fetched successfully',
+            'data'     => $customerBookings,
+        ], 200);
     }
 
     public function activateBooking($id)

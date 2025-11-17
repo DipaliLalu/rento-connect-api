@@ -60,6 +60,11 @@ $routes->group('', ['filter' => ['apikey', 'cors']], function ($routes) {
         'controller' => 'PermissionController',
     ]);
 
+    //mobility sub services
+    $routes->resource('mobilitysubservices', [
+        'controller' => 'MobilitySubServicesController',
+    ]);
+
     //role
     $routes->resource('role', [
         'controller' => 'RoleController',
@@ -95,6 +100,7 @@ $routes->group('', ['filter' => ['apikey', 'cors']], function ($routes) {
     $routes->get('booking/list', 'BookingController::getInactiveVendors');
     $routes->delete('booking/(:num)', 'BookingController::delete/$1');
     $routes->get('bookinglist/(:num)', 'BookingController::show/$1');
+    $routes->get('bookinghistory/(:num)', 'BookingController::bookinghistory/$1');
 
     //product 
     $routes->group('products', function ($routes) {
@@ -103,14 +109,15 @@ $routes->group('', ['filter' => ['apikey', 'cors']], function ($routes) {
         $routes->get('(:num)', 'ProductController::show/$1');
         $routes->post('(:num)', 'ProductController::update/$1');
         $routes->delete('(:num)', 'ProductController::delete/$1');
+        $routes->get('productBySlug/(:any)', 'ProductController::getBySlug/$1');
     });
 
     $routes->post('contact/send', 'ContactController::send_mail');
 
     $routes->group('blog', function ($routes) {
-        $routes->post('add', 'BlogController::addBlog');
-        $routes->post('edit/(:num)', 'BlogController::editBlog/$1');
-        $routes->get('list', 'BlogController::listBlogs');
-        $routes->delete('delete/(:num)', 'BlogController::singleDeletedBlog/$1');
+        $routes->post('/', 'BlogController::addBlog');
+        $routes->post('(:num)', 'BlogController::editBlog/$1');
+        $routes->get('/', 'BlogController::listBlogs');
+        $routes->delete('(:num)', 'BlogController::singleDeletedBlog/$1');
     });
 });
