@@ -1,0 +1,35 @@
+# ===============================
+# CodeIgniter 4 Git Ignore Setup
+# ===============================
+
+# Ignore environment config file (contains sensitive data)
+.env
+
+# Ignore writable directory (logs, cache, sessions, uploads)
+writable/*
+!writable/index.html    # keep index.html
+
+# Ignore Composer dependencies
+/vendor/
+composer.lock
+
+# Ignore NPM dependencies (if using frontend tools)
+node_modules/
+package-lock.json
+
+# Ignore system cache & generated files
+*.log
+*.cache
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore OS-specific junk files
+Desktop.ini
